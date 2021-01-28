@@ -1,0 +1,76 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Simple Web API Example</title>
+</head>
+<body>
+    <!--
+        Shows all products
+    -->
+    <div>
+        <h2>All Products</h2>
+        <h3>This is populated when page is ready</h3>
+        <ul id="products"></ul><!-- unordered list of products-->
+    </div>
+
+    <!--
+        Search for a specific product
+    -->
+    <div>
+        <h2>Search by ID</h2>
+        <input type="text" id="prodId" size="5" />
+        <input type="button" value="search" onclick="find();" />
+        <p id="product"></p>  <!-- The paragraph, given an identifier for use when returning data from API-->
+    </div>
+
+    <!-- Initialise AJAX-->
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+
+    <!-- Application functions-->
+    <script>
+        var uri = 'api/products';  //The products enum
+
+        //Function to call when document is ready (i.e. on load) to show all products
+        $(document).ready(function () { //$ refers to the document
+            //Get the object
+            $.getJSON(uri)
+                .done(function (data) {
+                    //Enumerate the object and inject into the HTML
+                    $.each(data, function (key, item) {
+                        $('<li>', { text: formatItem(item) }).appendTo($('#products'));
+                    });
+                });
+        });
+
+        //Function to appropriately format the parsed data
+        function formatItem(item) {
+            return item.Name + ': $' + item.Price;
+        }
+
+        
+        //Function search for a specific product by ID
+        function find() {
+            var id = $('#prodId').val();    //The value from the prodId text input
+            //Validate productId has been provided and is a number (two-for-one check)
+            var isNum = Number.isInteger(parseInt(id));
+            if (isNum === false) {
+                //Not provided, or not an integer
+                $('#product').text('Error: prodID must be provided, and must be a whole number');
+            }
+            else {
+                //OK to perform search
+                $.getJSON(uri + '/' + id)
+                    .done(function (data) {
+                        //Product found, inject into HTML
+                        $('#product').text(formatItem(data));
+                    })
+                    .fail(function (jqXHR, textStatus, err) {
+                        //Product not found, detail the error
+                        $('#product').text('Error: ' + err);
+                    });
+            }
+        }
+    </script>
+</body>
+</html>
